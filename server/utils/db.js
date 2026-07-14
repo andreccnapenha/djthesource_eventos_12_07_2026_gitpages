@@ -33,9 +33,15 @@ async function deleteQuote(id) {
 }
 
 async function addClient(client) {
+  const clientRow = {
+    ...client,
+    created_at: client.createdAt || client.created_at || new Date().toISOString(),
+  };
+  delete clientRow.createdAt;
+
   const { data, error } = await supabase
     .from("clients")
-    .insert([client])
+    .insert([clientRow])
     .select()
     .single();
   if (error) throw error;
@@ -45,7 +51,7 @@ async function addClient(client) {
 async function getClientByEmail(email) {
   const { data, error } = await supabase
     .from("clients")
-    .select("id, name, email, password, createdAt")
+    .select("id, name, email, password, created_at")
     .eq("email", email)
     .maybeSingle();
   if (error) throw error;

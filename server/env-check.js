@@ -1,0 +1,13 @@
+const path = require('path');
+const dotenv = require('dotenv');
+const result = dotenv.config({ path: path.join(__dirname, '.env') });
+console.log('parsed:', result.parsed ? 'yes' : 'no');
+console.log('error:', result.error ? result.error.message : 'none');
+console.log('SUPABASE_URL=' + process.env.SUPABASE_URL);
+console.log('SUPABASE_SERVICE_ROLE_KEY=' + process.env.SUPABASE_SERVICE_ROLE_KEY);
+console.log('SUPABASE_KEY=' + process.env.SUPABASE_KEY);
+console.log('SMTP_HOST=' + process.env.SMTP_HOST);
+console.log('SMTP_PORT=' + process.env.SMTP_PORT);
+console.log('SMTP_USER=' + process.env.SMTP_USER);
+console.log('SMTP_PASS=' + process.env.SMTP_PASS);
+console.log('EMAIL_FROM=' + process.env.EMAIL_FROM);

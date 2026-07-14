@@ -31,6 +31,7 @@ const Quote = () => {
   });
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
+  const [messageType, setMessageType] = useState<'success' | 'error'>('success');
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -73,14 +74,21 @@ const Quote = () => {
         })
       });
 
+      const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        const data = await response.json().catch(() => ({}));
         throw new Error(data.error || 'Erro ao enviar orçamento');
       }
 
-      setMessage('Orçamento enviado com sucesso ao organizador!');
+      if (data.warning) {
+        setMessageType('success');
+        setMessage(`Orçamento salvo. ${data.warning}`);
+      } else {
+        setMessageType('success');
+        setMessage('Orçamento enviado com sucesso ao organizador!');
+      }
     } catch (error: any) {
       localStorage.setItem('djQuote', JSON.stringify({ ...quote, savedOffline: true }));
+      setMessageType('error');
       setMessage('Servidor indisponível. Orçamento salvo localmente no navegador.');
     }
   };
@@ -212,7 +220,7 @@ const Quote = () => {
               >
                 ✓ Enviar Orçamento
               </button>
-              {message && <p className={`quote-message ${message.includes('sucesso') ? 'success' : 'error'}`}>{message}</p>}
+              {message && <p className={`quote-message ${messageType}`}>{message}</p>}
             </form>
           </div>
 

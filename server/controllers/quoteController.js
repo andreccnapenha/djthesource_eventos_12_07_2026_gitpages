@@ -34,9 +34,8 @@ const sendQuote = async (req, res) => {
         });
     }
 
-    let quoteSaved = false;
+    const id = `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
     try {
-      const id = `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
       await addQuoteRow({
         id,
         clientName: clientName || "",
@@ -46,16 +45,17 @@ const sendQuote = async (req, res) => {
         quoteText: JSON.stringify(quote),
         createdAt: new Date().toISOString(),
       });
-      quoteSaved = true;
     } catch (storeErr) {
       console.error("Erro ao salvar orçamento no Supabase:", storeErr);
-    }
-
-    if (!quoteSaved) {
       return res.status(500).json({ error: 'Orçamento não pôde ser salvo no Supabase.' });
     }
 
-    const transporter = createTransporter();
+    const transporterConfigured =
+      process.env.SMTP_HOST &&
+      process.env.SMTP_PORT &&
+      process.env.SMTP_USER &&
+      process.env.SMTP_PASS;
+
     const html = `
       <h1>Orçamento DJ The Source</h1>
       <p><strong>Cliente</strong>: ${clientName || "Não informado"}</p>
@@ -70,14 +70,31 @@ const sendQuote = async (req, res) => {
       <p>Mensagem enviada pelo sistema DJ The Source.</p>
     `;
 
-    const info = await transporter.sendMail({
-      from: process.env.EMAIL_FROM || process.env.SMTP_USER,
-      to: organizerEmail,
-      subject: "Orçamento DJ The Source",
-      html,
-    });
+    if (!transporterConfigured) {
+      return res.json({
+        status: "saved",
+        warning:
+          "Orçamento salvo no Supabase, mas o servidor SMTP não está configurado. Configure SMTP para enviar o email.",
+      });
+    }
 
-    return res.json({ status: "sent", messageId: info.messageId });
+    try {
+      const transporter = createTransporter();
+      const info = await transporter.sendMail({
+        from: process.env.EMAIL_FROM || process.env.SMTP_USER,
+        to: organizerEmail,
+        subject: "Orçamento DJ The Source",
+        html,
+      });
+
+      return res.json({ status: "sent", messageId: info.messageId });
+    } catch (emailError) {
+      console.error("Erro ao enviar email:", emailError);
+      return res.json({
+        status: "saved",
+        warning: "Orçamento salvo no Supabase, mas o envio de email falhou.",
+      });
+    }
   } catch (error) {
     console.error("Erro ao enviar email:", error);
     return res
@@ -96,7 +113,11 @@ const listQuotes = async (req, res) => {
       clientEmail: r.clientEmail,
       clientPhone: r.clientPhone,
       organizerEmail: r.organizerEmail,
-      quote: r.quoteText ? JSON.parse(r.quoteText) : null,
+      quote: r.quoteText
+        ? typeof r.quoteText === 'string'
+          ? JSON.parse(r.quoteText)
+          : r.quoteText
+        : null,
       createdAt: r.createdAt,
     }));
     res.json(parsed);

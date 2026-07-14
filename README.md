@@ -51,12 +51,19 @@ npm run dev
 
 ## Configuração de email e Supabase
 
-Copie `.env.example` para `.env` em `server/` e ajuste as variáveis SMTP.
+Copie `server/.env.example` para `server/.env` e preencha suas credenciais reais.
 
-Adicione também as variáveis Supabase:
+No backend, o servidor precisa das seguintes variáveis:
 
+- `SMTP_HOST`
+- `SMTP_PORT`
+- `SMTP_USER`
+- `SMTP_PASS`
+- `EMAIL_FROM`
 - `SUPABASE_URL`
 - `SUPABASE_SERVICE_ROLE_KEY`
+
+O `SUPABASE_SERVICE_ROLE_KEY` é a chave recomendada para o backend porque permite inserções e atualizações no Supabase. A chave `SUPABASE_KEY` é opcional e só deve ser usada se você souber o que está fazendo.
 
 Crie as tabelas no Supabase usando o arquivo `server/supabase-tables.sql`, ou execute as instruções no SQL Editor.
 
@@ -66,4 +73,12 @@ As tabelas necessárias são:
 - `clients`
 - `quotes`
 
-As colunas incluem campos como `id`, `title`, `description`, `rateLabel`, `unitLabel`, `basePrice`, `values`, `hourly`, `options`, `createdAt`, `quoteText`, `clientName`, `clientEmail`, `clientPhone`, `organizerEmail`, `password` e `email`.
+As colunas incluem campos como `id`, `title`, `description`, `rateLabel`, `unitLabel`, `basePrice`, `values`, `hourly`, `options`, `created_at`, `createdAt`, `quoteText`, `clientName`, `clientEmail`, `clientPhone`, `organizerEmail`, `password` e `email`.
+
+Para validar o fluxo completo:
+
+1. `cd server`
+2. `npm install`
+3. `npm start`
+4. Verifique `http://localhost:4000/api/health`
+5. Abra o frontend e envie um orçamento via `/api/quote`
